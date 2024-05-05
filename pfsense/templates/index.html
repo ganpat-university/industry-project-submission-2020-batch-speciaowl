@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pfsense Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="icon" type="image/x-icon" href="static/images/Demo_logo.jpg">
+    <style>
+        .card {
+            height: 500px; /* Adjust the height as needed */
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .card-body {
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .table {
+            min-width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="{{url_for('static', filename='/images/Demo_logo.jpg')}}" alt="Bootstrap" width="50"
+                    height="50">
+                Demo Corp Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Firewall Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Device ID</th>
+                            </tr>
+
+                            {% if device_name != NULL %}
+
+                            <tr>
+                                <td>{{ device_name }}</td>
+
+                                <td>
+                                    <a href="{{ url_for('rule') }}" target="_blank">
+                                        {{ device_id }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green"
+                                            class="bi bi-circle-fill" viewBox="0 0 16 16" px="4px">
+                                            <circle cx="8" cy="8" r="8" />
+                                        </svg>
+                                    </a>
+                                </td>
+
+                                {% endif %}
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Gateway Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Name</th>
+                                <th>Monitor IP</th>
+                                <th>Source IP</th>
+                                <th>Delay</th>
+                                <th>Loss</th>
+                                <th>Status</th>
+                            </tr>
+                            {% for gateway in gateways %}
+                            <tr>
+                                <td>{{ gateway.name }}</td>
+                                <td>{{ gateway.monitor_ip }}</td>
+                                <td>{{ gateway.source_ip }}</td>
+                                <td>{{ gateway.delay }}</td>
+                                <td>{{ gateway.loss }}</td>
+                                <td>{{ gateway.status }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Interface Information
+                    </div>
+                    <div class="card-body overflow-auto-x">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Name</th>
+                                <th>Desc</th>
+                                <th>if</th>
+                                <th>ipaddr</th>
+                                <th>subnet</th>
+                                <th>ipaddress V6</th>
+                                <th>subnetv6</th>
+                            </tr>
+                            {% for interface in interfaces %}
+                            <tr>
+                                <td>{{ interface.name }}</td>
+                                <td>{{ interface.descr }}</td>
+                                <td>{{ interface.if }}</td>
+                                <td>{{ interface.ipaddr }}</td>
+                                <td>{{ interface.subnet }}</td>
+                                <td>{{ interface.ipaddrv6 }}</td>
+                                <td>{{ interface.subnetv6 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Services Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Name</th>
+                                <th>Desc</th>
+                                <th>Status</th>
+                            </tr>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ service.name }}</td>
+                                <td>{{ service.description }}</td>
+                                <td>{{ service.status }}</td>
+                            </tr>
+    
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        DHCP Lease Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>type</th>
+                                <th>ip</th>
+                                <th>mac</th>
+                                <th>online</th>
+                                <th>hostname</th>
+                                <th>starts</th>
+                                <th>ends</th>
+                                <th>state</th>
+    
+                            </tr>
+                            {% for lease in dhcp_lease %}
+                            <tr>
+                                <td>{{ lease.type }}</td>
+                                <td>{{ lease.ip }}</td>
+                                <td>{{ lease.mac }}</td>
+                                <td>{{ lease.online }}</td>
+                                <td>{{ lease.hostname }}</td>
+                                <td>{{ lease.starts }}</td>
+                                <td>{{ lease.ends }}</td>
+                                <td>{{ lease.state }}</td>
+    
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        DHCP Lease Utilization
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Interface</th>
+                                <th>Pool Start</th>
+                                <th>Pool End</th>
+    
+                            </tr>
+    
+                            {% for util in dhcp_util %}
+                            <tr>
+                                <td>{{ util.interface }}</td>
+                                <td>{{ util.from }}</td>
+                                <td>{{ util.to }}</td>
+    
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>

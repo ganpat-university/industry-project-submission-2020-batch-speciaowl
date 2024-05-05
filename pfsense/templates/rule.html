@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pfsense Rule Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="icon" type="image/x-icon" href="static/images/Demo_logo.jpg">
+
+    <style>
+        *,
+        *:before,
+        *:after {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: #384047;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background: #f4f7f8;
+            border-radius: 8px;
+        }
+
+        h1 {
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        input[type="datetime"],
+        input[type="email"],
+        input[type="number"],
+        input[type="search"],
+        input[type="tel"],
+        input[type="time"],
+        input[type="url"],
+        textarea,
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            font-size: 16px;
+            height: auto;
+            margin: 0;
+            outline: 0;
+            padding: 15px;
+            width: 100%;
+            background-color: #e8eeef;
+            color: #8a97a0;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+            margin-bottom: 30px;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin: 0 4px 8px 0;
+        }
+
+        select {
+            padding: 6px;
+            height: 32px;
+            border-radius: 2px;
+        }
+
+        button {
+            padding: 19px 39px 18px 39px;
+            color: #FFF;
+            background-color: #4035d4;
+            font-size: 18px;
+            text-align: center;
+            font-style: normal;
+            border-radius: 5px;
+            width: 100%;
+            border: 1px solid #4035d4;
+            border-width: 1px 1px 3px;
+            box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.1) inset;
+            margin-bottom: 10px;
+        }
+
+        fieldset {
+            margin-bottom: 30px;
+            border: none;
+        }
+
+        legend {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        label.light {
+            font-weight: 300;
+            display: inline;
+        }
+
+        .number {
+            background-color: #4035d4;
+            color: #fff;
+            height: 30px;
+            width: 30px;
+            display: inline-block;
+            font-size: 0.8em;
+            margin-right: 4px;
+            line-height: 30px;
+            text-align: center;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-radius: 100%;
+        }
+
+        .card {
+            height: 500px;
+            /* Adjust the height as needed */
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .card-body {
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .table {
+            min-width: 100%;
+            overflow-x: auto;
+        }
+
+        @media screen and (min-width: 480px) {
+            form {
+                max-width: 480px;
+                margin: 0 auto; /* Center the form horizontally */
+            }
+
+            .row-cols-1,
+            .row-cols-md-2 {
+                flex-direction: row; /* Make columns side by side */
+            }
+
+            .col {
+                flex: 1; /* Make columns equal width */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="{{url_for('static', filename='/images/Demo_logo.jpg')}}" alt="Bootstrap" width="50"
+                    height="50">
+                Demo Corp
+            </a>
+            <a class="text-white" href="{{ url_for('index') }}" target="_blank">Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- Bootstrap alerts -->
+    <div id="liveAlertPlaceholder" class="mt-3">
+        {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+        {% endif %}
+        {% if error_message %}
+        <div class="alert alert-danger" role="alert">
+            {{ error_message }}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="container mt-3">
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Firewall Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Device ID</th>
+                            </tr>
+
+                            {% if device_name != NULL %}
+
+                            <tr>
+                                <td>{{ device_name }}</td>
+
+                                <td>
+                                    <a href="{{ url_for('rule') }}" target="_blank">
+                                        {{ device_id }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green"
+                                            class="bi bi-circle-fill" viewBox="0 0 16 16" px="4px">
+                                            <circle cx="8" cy="8" r="8" />
+                                        </svg>
+                                    </a>
+                                </td>
+
+                                {% endif %}
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        Rule Information
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tr>
+                                <th>Rule Type</th>
+                                <th>Interface</th>
+                                <th>Source Address</th>
+                                <th>Destination Address</th>
+                                <th>Description</th>
+                            </tr>
+
+
+                            {% for one in f_rules %}
+                            {% if one.interface == "wan" %}
+                            <tr>
+                                <td>{{ one.type }}</td>
+                                <td>{{ one.interface }}</td>
+                                <td>{{ one.address }}</td>
+                                <td>{{ one.address }}</td>
+                                <td>{{ one.descr }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <form id="apiForm" action="/api_call" method="post">
+
+                    <h1>Rule Information</h1>
+
+                    <fieldset>
+
+                        <legend><span class="number">1</span> Basic Interface Details</legend>
+
+                        <label for="type" class="form-label">Type:</label>
+                        <select class="form-select" name="type" id="type">
+                            <option selected>block</option>
+                            <option>pass</option>
+                            <option>reject</option>
+                        </select>
+
+                        <label for="interface" class="form-label">Interface:</label>
+                        <select class="form-select" name="interface" id="interface">
+                            {% for name in names %}
+                            <option>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </fieldset>
+
+                    <fieldset>
+
+                        <legend><span class="number">2</span> Rule Details</legend>
+
+                        <label for="protocol" class="form-label">Protocol:</label>
+                        <input type="text" class="form-control" name="protocol" id="protocol" required
+                            placeholder="TCP,UDP,any,etc">
+
+                        <label for="src" class="form-label">Source IP:</label>
+                        <input type="text" class="form-control" name="src" id="src" required
+                            placeholder="IP_CIDR or any">
+
+                        <label for="src_port" class="form-label">Source Port:</label>
+                        <input type="text" class="form-control" name="src_port" id="src_port" required
+                            placeholder="port_no. or any">
+
+                        <label for="dst" class="form-label">Destination IP:</label>
+                        <input type="text" class="form-control" name="dst" id="dst" required
+                            placeholder="IP_CIDR or any">
+
+                        <label for="dst_port" class="form-label">Destination Port:</label>
+                        <input type="text" class="form-control" name="dst_port" id="dst_port" required
+                            placeholder="port_no. or any">
+
+                        <label for="descr" class="form-label">Description:</label>
+                        <input type="text" class="form-control" name="descr" id="descr" required
+                            placeholder="Enter a brief description of what this rule does">
+
+                        <label for="log" class="form-label">Log:</label>
+                        <select class="form-select" id="log" name="log">
+                            <option selected>true</option>
+                            <option value="1">false</option>
+                        </select>
+
+                        <label for="top" class="form-label">Top:</label>
+                        <select class="form-select" id="top" name="top">
+                            <option selected>true</option>
+                            <option value="1">false</option>
+                        </select>
+
+                        <label for="apply" class="form-label">Apply:</label>
+                        <select class="form-select" id="apply" name="apply">
+                            <option selected>true</option>
+                            <option value="1">false</option>
+                        </select>
+
+                    </fieldset>
+
+                    <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+    <script>
+        // Function to create and show the Bootstrap alert
+        function showLiveAlert(message, alertType) {
+            // Create the alert element
+            var alertElement = document.createElement('div');
+            alertElement.classList.add('alert', 'alert-dismissible', 'fade', 'show', 'mt-3');
+            alertElement.setAttribute('role', 'alert');
+
+            // Set alert type
+            if (alertType === 'success') {
+                alertElement.classList.add('alert-success');
+            } else if (alertType === 'error') {
+                alertElement.classList.add('alert-danger');
+            }
+
+            // Create alert message
+            alertElement.innerHTML = `
+                <strong>${alertType.charAt(0).toUpperCase() + alertType.slice(1)}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // Append alert to the placeholder
+            document.getElementById('liveAlertPlaceholder').appendChild(alertElement);
+            
+            // Scroll to the top of the page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Refresh the page after showing the alert
+            setTimeout(function() {
+                location.reload();
+            }, 3000); // Adjust the timeout value as needed
+        }
+
+        // Event listener for form submission
+        document.getElementById('apiForm').addEventListener('submit', function(event) {
+            // Prevent default form submission behavior
+            event.preventDefault();
+
+            // Gather form data
+            var formData = new FormData(document.getElementById('apiForm'));
+
+            // Make an AJAX request
+            fetch('/api_call', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display appropriate alert based on the response
+                if (data.status === 'success') {
+                    showLiveAlert(data.message, 'success');
+                } else {
+                    showLiveAlert(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
